@@ -28,14 +28,16 @@ namespace tech_task.Controllers
             var treeNode = new TreeNodeViewModel
             {
                 Id = node.Id,
-                Text = node.ParentId.HasValue
-                    ? $"{node.Key}: {node.Value}"
-                    : $"{node.Id} ({context.Configurations.FirstOrDefault(c => c.RootElementId == node.Id)?.Comment})",
+                Text = node.ParentId == null
+                    ? $"{context.Configurations.FirstOrDefault(c => c.RootElementId == node.Id)?.Id} ({context.Configurations.FirstOrDefault(c => c.RootElementId == node.Id)?.Comment})"
+                    : $"{node.Key}: {node.Value}",
+                Value = node.Value,
                 Children = GetChildren(node.Id, context)
             };
 
             return treeNode;
         }
+
 
         private List<TreeNodeViewModel> GetChildren(int parentId, ConfigContext context)
         {
