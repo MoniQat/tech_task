@@ -7,6 +7,10 @@
 <form method="post" enctype="multipart/form-data" action="/Configuration/UploadJson">
     <label for="jsonFile">Upload JSON File:</label>
     <input type="file" name="jsonFile" id="jsonFile" accept=".json" required />
+
+    <label for="comment">Comment:</label>
+    <input type="text" name="comment" id="comment" required />
+
     <button type="submit">Upload</button>
 </form>
 
@@ -30,3 +34,4 @@
         });
     </script>
 }
+

@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public string Text { get; set; }
-        public string Value { get; set; } // New property for the value
+        public string Value { get; set; }
         public List<TreeNodeViewModel> Children { get; set; }
     }
 }

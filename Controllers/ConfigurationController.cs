@@ -15,10 +15,8 @@ namespace tech_task.Controllers
                     .Include(c => c.RootElement)
                     .ToList();
 
-                // Filter root elements to start building the tree
                 var rootElements = configurations.Select(c => c.RootElement).ToList();
 
-                // Build the tree hierarchy recursively
                 var treeNodes = rootElements.Select(root => BuildTree(root, _context)).ToList();
 
                 return View(treeNodes);
@@ -31,14 +29,14 @@ namespace tech_task.Controllers
             {
                 Id = node.Id,
                 Text = node.ParentId.HasValue
-                    ? node.Key
+                    ? $"{node.Key}: {node.Value}"
                     : $"{node.Id} ({context.Configurations.FirstOrDefault(c => c.RootElementId == node.Id)?.Comment})",
-                Value = node.Value,
                 Children = GetChildren(node.Id, context)
             };
 
             return treeNode;
         }
+
         private List<TreeNodeViewModel> GetChildren(int parentId, ConfigContext context)
         {
             var childNodes = context.ConfigurationItems
@@ -52,7 +50,7 @@ namespace tech_task.Controllers
 
 
         [HttpPost]
-        public IActionResult UploadJson(IFormFile jsonFile)
+        public IActionResult UploadJson(IFormFile jsonFile, string comment)
         {
             if (jsonFile != null && jsonFile.Length > 0)
             {
@@ -61,7 +59,7 @@ namespace tech_task.Controllers
                     var jsonString = stream.ReadToEnd();
                     try
                     {
-                        ProcessByJToken(jsonString);
+                        CreateConfigurationHierarchy(jsonString, comment);
                     }
                     catch (Exception ex)
                     {
@@ -73,8 +71,7 @@ namespace tech_task.Controllers
             return RedirectToAction("Index");
         }
 
-
-        private void ProcessByJToken(string jString, ConfigurationItem? parentItem = null)
+        private void CreateConfigurationHierarchy(string jString, string comment, ConfigurationItem? parentItem = null)
         {
             IDictionary<string, JToken> JsonData = JObject.Parse(jString);
 
@@ -91,7 +88,7 @@ namespace tech_task.Controllers
 
                     var configuration = new Configuration
                     {
-                        Comment = "Root Configuration",
+                        Comment = comment,
                         RootElementId = rootItem.Id,
                         RootElement = rootItem
                     };
@@ -99,7 +96,7 @@ namespace tech_task.Controllers
                     _context.SaveChanges();
 
                     Console.WriteLine($"Root element created{rootItem.Id}");
-                    ProcessByJToken(jString, rootItem);
+                    CreateConfigurationHierarchy(jString, comment, rootItem);
 
                     return;
                 }
@@ -118,7 +115,7 @@ namespace tech_task.Controllers
                     {
                         Console.WriteLine($"ParentId is {parentItem.Id}");
                         Console.Write($"{element.Key}: ");
-                        ProcessByJToken(element.Value.ToString(), configItem);
+                        CreateConfigurationHierarchy(element.Value.ToString(), comment, configItem);
                     }
                     catch
                     {
